@@ -1,0 +1,39 @@
+#!/usr/bin/env ruby-local-exec
+
+require 'rubygems'
+require 'bundler/setup'
+
+require 'nokogiri'
+require 'ostruct'
+require 'time'
+
+file_name = ARGV[0]
+raise "Please specify a filename" if file_name.nil?
+
+transcript_file = File.read(File.expand_path(file_name, File.dirname(__FILE__)))
+transcript = Nokogiri::XML(transcript_file)
+
+@output = [ ]
+
+transcript.css('envelope,event').each do |envelope|
+  sender = envelope.search('sender').first
+  message = envelope.search('message').first
+
+  timestamp = message['received'] || envelope['occurred']
+
+  unless timestamp.nil?
+    line = { :message => message.content, :timestamp => Time.parse(timestamp) }
+    line[:sender] = sender.content unless sender.nil?
+
+    @output << OpenStruct.new(line)
+  end
+end
+
+@output.sort_by(&:timestamp).each do |line|
+  if line.sender
+    print "[" + line.timestamp.strftime("%H:%I:%S") + "] #{line.sender}: "
+  else
+    print " ** "
+  end
+  print "#{line.message}\n"
+end
