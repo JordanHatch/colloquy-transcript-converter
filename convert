@@ -31,7 +31,7 @@ end
 
 @output.sort_by(&:timestamp).each do |line|
   if line.sender
-    print "[" + line.timestamp.strftime("%H:%I:%S") + "] #{line.sender}: "
+    print "[" + line.timestamp.strftime("%H:%M:%S") + "] #{line.sender}: "
   else
     print " ** "
   end
