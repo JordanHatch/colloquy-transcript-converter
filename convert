@@ -17,15 +17,15 @@ transcript = Nokogiri::XML(transcript_file)
 
 transcript.css('envelope,event').each do |envelope|
   sender = envelope.search('sender').first
-  message = envelope.search('message').first
+  messages = envelope.search('message').each do |message|
+    timestamp = message['received'] || envelope['occurred']
 
-  timestamp = message['received'] || envelope['occurred']
+    unless timestamp.nil?
+      line = { :message => message.content, :timestamp => Time.parse(timestamp) }
+      line[:sender] = sender.content unless sender.nil?
 
-  unless timestamp.nil?
-    line = { :message => message.content, :timestamp => Time.parse(timestamp) }
-    line[:sender] = sender.content unless sender.nil?
-
-    @output << OpenStruct.new(line)
+      @output << OpenStruct.new(line)
+    end
   end
 end
 
